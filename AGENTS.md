@@ -13,5 +13,8 @@
   reports drift, update the listed dependents, then run `just outdatty-update`
   to re-confirm. Add a group whenever you introduce files that must stay in sync.
 - Eating your own dog food: the tool should use itself if applicable.
+- Backlog lives under `tasks/` as one-task-per-file Typst artifacts, driven by
+  MindTape (`mt`). See [CONTRIBUTING.md](CONTRIBUTING.md#task-tracking) for
+  the commands and the `Refs:` footer policy.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for project conventions and code standards.

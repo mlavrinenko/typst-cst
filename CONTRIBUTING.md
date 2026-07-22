@@ -65,6 +65,26 @@ After editing a source, review the listed dependents, update them as needed, the
 run `just outdatty-update` to record the new state into `outdatty.lock` and commit
 it. Add or adjust groups whenever you introduce files that must move together.
 
+## Task Tracking
+
+The backlog lives under `tasks/` as one-task-per-file Typst artifacts, driven
+by [MindTape](https://github.com/mlavrinenko/mindtape) (`mt`) —
+`.mindtape/config.toml` (the `flow` preset: `proposed -> wip ->
+blocked/done/cancelled`). Common commands:
+
+```bash
+mt ls                  # active, startable tasks
+mt add <title…>        # file a new task
+mt flip <status> <id>  # e.g. mt flip wip <id>, mt flip done <id>
+mt check               # validate the backlog
+```
+
+Drive tasks through `mt`, not hand edits — it stamps status dates, injects
+required fields, and validates. Commit footer: `Refs: tasks/<stem>.typ`,
+pointing at the task driving the change. Commits that only file or edit task
+artifacts (or `.mindtape/config.toml`) carry no `Refs:` footer — a task commit
+refs nothing.
+
 ## Submitting Changes
 
 1. Run `just check` before submitting — it runs clippy, tests, file size, and drift checks
