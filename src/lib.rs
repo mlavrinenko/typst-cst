@@ -2,19 +2,24 @@
 //!
 //! The syntactic counterpart to `typst-harvest`: where the harvester evaluates a
 //! file to collect computed `metadata()` markers, this parses the source with
-//! [`typst_syntax::parse`] (no eval, no `World`, no IO) and extracts the heading
-//! structure as written — depth, text, and source span — so tools can gate the
-//! shape of a document cheaply.
+//! [`typst_syntax::parse`] (no eval, no `World`, no IO) and extracts structure as
+//! written — the heading tree (depth, text, source span) and line/block comments
+//! (text, source span) — so tools can gate the shape of a document cheaply.
 //!
 //! ```
-//! use typst_cst::{parse_headings, tree};
-//! let src = "= Top\n== Sub\n";
+//! use typst_cst::{parse_comments, parse_headings, tree, CommentKind};
+//! let src = "= Top\n== Sub\n// note\n";
 //! let flat = parse_headings(src);
 //! assert_eq!(flat.len(), 2);
 //! assert_eq!(flat[0].depth, 1);
 //! assert_eq!(flat[1].text, "Sub");
 //! let roots = tree(flat);
 //! assert_eq!(roots[0].children.len(), 1);
+//!
+//! let comments = parse_comments(src);
+//! assert_eq!(comments.len(), 1);
+//! assert_eq!(comments[0].kind, CommentKind::Line);
+//! assert_eq!(comments[0].text, "note");
 //! ```
 
 use std::iter::Peekable;
@@ -113,6 +118,95 @@ fn extract(node: &LinkedNode, source: &Source) -> Option<Heading> {
         .map_or(0, |l| l + 1);
     Some(Heading {
         depth,
+        text,
+        line,
+        range,
+    })
+}
+
+/// Distinguishes `//` line comments from `/* ... */` block comments.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+pub enum CommentKind {
+    /// A `//` comment, running to the end of the line.
+    Line,
+    /// A `/* ... */` comment; may span multiple lines and nest.
+    Block,
+}
+
+/// A comment as written in the source.
+///
+/// Line and byte span are consumer-blind: this crate works on text alone, so the
+/// owning file is the caller's concern.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+pub struct Comment {
+    /// Whether this is a line or block comment.
+    pub kind: CommentKind,
+    /// The comment's inner text, delimiters stripped and trimmed.
+    pub text: String,
+    /// One-based line of the comment's start in the source.
+    pub line: usize,
+    /// Byte range of the whole comment token within the source, delimiters included.
+    pub range: Range<usize>,
+}
+
+/// Extract every comment from Typst source, in document order.
+///
+/// Comments inside string literals and raw blocks are not comments to the
+/// lexer, so they are never reported here.
+///
+/// ```
+/// use typst_cst::{parse_comments, CommentKind};
+/// let src = "// summary\n/* detail\n   spanning lines */\n";
+/// let comments = parse_comments(src);
+/// assert_eq!(comments.len(), 2);
+/// assert_eq!(comments[0].kind, CommentKind::Line);
+/// assert_eq!(comments[0].text, "summary");
+/// assert_eq!(comments[1].kind, CommentKind::Block);
+/// assert_eq!(comments[1].text, "detail\n   spanning lines");
+/// assert_eq!(comments[1].line, 2);
+/// ```
+#[must_use]
+pub fn parse_comments(text: &str) -> Vec<Comment> {
+    let source = Source::detached(text);
+    let root = LinkedNode::new(source.root());
+    let mut out = Vec::new();
+    collect_comments(&root, &source, &mut out);
+    out
+}
+
+fn collect_comments(node: &LinkedNode, source: &Source, out: &mut Vec<Comment>) {
+    if let Some(comment) = extract_comment(node, source) {
+        out.push(comment);
+    }
+    for child in node.children() {
+        collect_comments(&child, source, out);
+    }
+}
+
+fn extract_comment(node: &LinkedNode, source: &Source) -> Option<Comment> {
+    let kind = match node.kind() {
+        SyntaxKind::LineComment => CommentKind::Line,
+        SyntaxKind::BlockComment => CommentKind::Block,
+        _ => return None,
+    };
+    let range = node.range();
+    let raw = source.text().get(range.clone()).unwrap_or_default();
+    let inner = match kind {
+        CommentKind::Line => raw.strip_prefix("//").unwrap_or(raw),
+        CommentKind::Block => raw
+            .strip_prefix("/*")
+            .and_then(|s| s.strip_suffix("*/"))
+            .unwrap_or(raw),
+    };
+    let text = inner.trim().to_owned();
+    let line = source
+        .lines()
+        .byte_to_line(range.start)
+        .map_or(0, |l| l + 1);
+    Some(Comment {
+        kind,
         text,
         line,
         range,

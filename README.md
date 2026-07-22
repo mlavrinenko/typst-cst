@@ -4,7 +4,7 @@
 [![crates.io](https://img.shields.io/crates/v/typst-cst.svg)](https://crates.io/crates/typst-cst)
 [![License: MIT](https://img.shields.io/crates/l/typst-cst.svg)](LICENSE-MIT)
 
-Parse-plane structure extraction for Typst: heading tree with source spans, no eval, no World, no IO
+Parse-plane structure extraction for Typst: heading tree and comments with source spans, no eval, no World, no IO
 
 ## Install
 
@@ -27,7 +27,19 @@ let roots = tree(flat);
 assert_eq!(roots[0].children.len(), 1);
 ```
 
-Enable the `serde` feature to derive `Serialize` on `Heading`/`HeadingNode`.
+```rust
+use typst_cst::{parse_comments, CommentKind};
+
+let src = "// note\n/* detail */\n";
+let comments = parse_comments(src);
+assert_eq!(comments.len(), 2);
+assert_eq!(comments[0].kind, CommentKind::Line);
+assert_eq!(comments[0].text, "note");
+assert_eq!(comments[1].kind, CommentKind::Block);
+assert_eq!(comments[1].text, "detail");
+```
+
+Enable the `serde` feature to derive `Serialize` on `Heading`/`HeadingNode`/`Comment`/`CommentKind`.
 
 ## Development
 
