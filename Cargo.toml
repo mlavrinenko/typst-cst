@@ -3,7 +3,7 @@ members = [] # Add sub-crate paths here as the project grows
 
 [package]
 name = "typst-cst"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.85"
 description = "Parse-plane structure extraction for Typst: heading tree and comments with source spans, no eval, no World, no IO"

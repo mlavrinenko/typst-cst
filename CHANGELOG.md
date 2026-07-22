@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-22
+
+### Added
+
+- `parse_comments` and `Comment`/`CommentKind`: extract line (`//`) and block
+  (`/* */`) comments from Typst source on the parse plane, alongside
+  `parse_headings`. Same discipline — no eval, no `World`, no IO, no regex.
+
 ## [0.1.0] - 2026-07-05
 
 ### Added

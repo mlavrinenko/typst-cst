@@ -3,19 +3,19 @@ algorithm: blake3
 groups:
   api-docs:
     source:
-      src/lib.rs: aca4463311b7e334709c7fd9f3fe370a345f8cc140b757ef912727986fe37851
+      src/lib.rs: 84dd04d86e2302f005af95a9e2dcd44828653ad371a04ab8eaf75b73cfa037fd
     dependents:
-      README.md: d69e75ffd14c4ef40c42783771c0bae82b893bab1a508dd7ac38b61318829bf3
-      www/index.html: e83694a3d90959744089b4789a73abff3c922d812649caca82a4ab1e7faf8a61
+      README.md: 015a6029f61d7134ae84081df42ee74fffa67d95f6f8157252923faa68e056c8
+      www/index.html: 4dce7591e9f05d29b90d52e54dfc65aa25e8b78acdb22520ca66b245303fa380
   dev-docs:
     source:
       Justfile: b2078a84849e703f5adb7e1993dda3f929f1e9245f03367be9e8a95242266677
       flake.nix: a7796d1b64ab0e985d84ed7b32a28f69256a7988ebc6ce2d46924a81cc18ccc6
     dependents:
-      AGENTS.md: c3c7ab961d00c4147b957b4aa411b0d3dd840834617da85545cd0fb99a1fb347
-      CONTRIBUTING.md: 2d34ba5da8481b4906fe00c21ee6b03d8e87cfa199daede8359ac123077add3c
+      AGENTS.md: 0f82972f90a6369487f2ffe14f640ee5d6a811f30d053b43702e30af8ebba0fc
+      CONTRIBUTING.md: 65919e6936f67adb6f90e5190113453f2143471f2d5061e00dcbe71a13970920
   release-notes:
     source:
-      Cargo.toml: 4a8ac058e646125a42ca7409a933b334c92cf91e0bbf1cec50765ccb09bff52c
+      Cargo.toml: 59ef3222b06c49926d80e4757c5828bc08b3ab20493f57e220825996700b7eab
     dependents:
-      CHANGELOG.md: 803520e4ffe678d5f393026d3e3a8afbd22f2438d8a370b7812972b759ab945d
+      CHANGELOG.md: c86402de95d67770256754e930825da4db2bd978f7bd65abb519cfd5d4bd041a
