@@ -9,7 +9,7 @@ groups:
       www/index.html: 4dce7591e9f05d29b90d52e54dfc65aa25e8b78acdb22520ca66b245303fa380
   dev-docs:
     source:
-      Justfile: 071a82a79f3cff83e0559c6f1a32fc5184f189374473059e588454971a0d5f54
+      Justfile: 71cd4fb0302c8e6f39bd793fe4808d54ba854cc2c51ffc47b7c386442b9262a4
       flake.nix: a7796d1b64ab0e985d84ed7b32a28f69256a7988ebc6ce2d46924a81cc18ccc6
     dependents:
       AGENTS.md: 0f82972f90a6369487f2ffe14f640ee5d6a811f30d053b43702e30af8ebba0fc
