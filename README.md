@@ -22,6 +22,8 @@ let flat = parse_headings(src);
 assert_eq!(flat.len(), 2);
 assert_eq!(flat[0].depth, 1);
 assert_eq!(flat[1].text, "Sub");
+// The section a heading opens runs to the next heading of its depth or less.
+assert_eq!(&src[flat[0].section.clone()], "\n== Sub\n");
 
 let roots = tree(flat);
 assert_eq!(roots[0].children.len(), 1);

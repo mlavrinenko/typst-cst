@@ -3,8 +3,9 @@
 //! The syntactic counterpart to `typst-harvest`: where the harvester evaluates a
 //! file to collect computed `metadata()` markers, this parses the source with
 //! [`typst_syntax::parse`] (no eval, no `World`, no IO) and extracts structure as
-//! written — the heading tree (depth, text, source span) and line/block comments
-//! (text, source span) — so tools can gate the shape of a document cheaply.
+//! written — the heading tree (depth, text, heading and section spans) and
+//! line/block comments (text, source span) — so tools can gate the shape of a
+//! document cheaply.
 //!
 //! ```
 //! use typst_cst::{parse_comments, parse_headings, tree, CommentKind};
@@ -13,6 +14,8 @@
 //! assert_eq!(flat.len(), 2);
 //! assert_eq!(flat[0].depth, 1);
 //! assert_eq!(flat[1].text, "Sub");
+//! // The section a heading opens runs to the next heading of its depth or less.
+//! assert_eq!(&src[flat[0].section.clone()], "\n== Sub\n// note\n");
 //! let roots = tree(flat);
 //! assert_eq!(roots[0].children.len(), 1);
 //!
@@ -42,6 +45,10 @@ pub struct Heading {
     pub line: usize,
     /// Byte range of the whole heading within the source text.
     pub range: Range<usize>,
+    /// Byte range of the section this heading opens, after the heading itself:
+    /// up to the next heading of the same or smaller depth, or the end of the
+    /// source. Nested subsections fall inside it.
+    pub section: Range<usize>,
 }
 
 /// A heading and the headings nested beneath it (deeper depth).
@@ -61,7 +68,25 @@ pub fn parse_headings(text: &str) -> Vec<Heading> {
     let root = LinkedNode::new(source.root());
     let mut out = Vec::new();
     collect(&root, &source, &mut out);
+    close_sections(&mut out, text.len());
     out
+}
+
+/// End each heading's section at the next heading of the same or smaller
+/// depth, or at `end` when none follows.
+fn close_sections(headings: &mut [Heading], end: usize) {
+    let mut open: Vec<&mut Heading> = Vec::new();
+    for heading in headings {
+        while open.last().is_some_and(|prev| prev.depth >= heading.depth) {
+            if let Some(prev) = open.pop() {
+                prev.section.end = heading.range.start;
+            }
+        }
+        open.push(heading);
+    }
+    for heading in open {
+        heading.section.end = end;
+    }
 }
 
 /// Build the nesting tree from a document-order heading list.
@@ -120,6 +145,7 @@ fn extract(node: &LinkedNode, source: &Source) -> Option<Heading> {
         depth,
         text,
         line,
+        section: range.end..range.end,
         range,
     })
 }

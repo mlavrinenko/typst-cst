@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `Heading::section`: the byte range of the section a heading opens, from the
+  end of the heading to the next heading of the same or smaller depth, or the
+  end of the source. Nested subsections fall inside it. A new public field, so
+  a `Heading` struct literal must now set it.
+
 ## [0.2.0] - 2026-07-22
 
 ### Added

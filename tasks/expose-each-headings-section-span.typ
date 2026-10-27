@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "expose each heading's section span",
-  status: proposed(2026, 10, 28),
+  status: wip(2026, 10, 28),
 )
 
 = Summary

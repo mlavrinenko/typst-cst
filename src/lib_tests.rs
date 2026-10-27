@@ -124,3 +124,54 @@ fn test_parse_comments_keeps_document_order_around_heading() {
     assert_eq!(comments[1].text, "after");
     assert!(comments[0].range.start < comments[1].range.start);
 }
+
+/// The source text of the section `heading` opens.
+fn section_text<'a>(src: &'a str, heading: &super::Heading) -> &'a str {
+    &src[heading.section.clone()]
+}
+
+#[test]
+fn test_section_ends_at_a_sibling() {
+    let src = "= A\nalpha\n= B\nbeta\n";
+    let headings = parse_headings(src);
+    assert_eq!(section_text(src, &headings[0]), "\nalpha\n");
+}
+
+#[test]
+fn test_section_keeps_deeper_headings_inside() {
+    let src = "== A\nalpha\n=== Sub\ninner\n== B\nbeta\n";
+    let headings = parse_headings(src);
+    assert_eq!(section_text(src, &headings[0]), "\nalpha\n=== Sub\ninner\n");
+    assert_eq!(section_text(src, &headings[1]), "\ninner\n");
+}
+
+#[test]
+fn test_section_ends_at_a_shallower_heading() {
+    let src = "= A\n== B\nbeta\n= C\n";
+    let headings = parse_headings(src);
+    assert_eq!(section_text(src, &headings[1]), "\nbeta\n");
+}
+
+#[test]
+fn test_last_section_runs_to_the_end() {
+    let src = "= A\n== B\nbeta";
+    let headings = parse_headings(src);
+    assert_eq!(section_text(src, &headings[0]), "\n== B\nbeta");
+    assert_eq!(section_text(src, &headings[1]), "\nbeta");
+}
+
+#[test]
+fn test_section_spans_a_depth_jump() {
+    let src = "= A\n=== Deep\nx\n== B\n";
+    let headings = parse_headings(src);
+    assert_eq!(section_text(src, &headings[0]), "\n=== Deep\nx\n== B\n");
+    assert_eq!(section_text(src, &headings[1]), "\nx\n");
+}
+
+#[test]
+fn test_tree_keeps_sections() {
+    let src = "= A\n== B\n";
+    let roots = tree(parse_headings(src));
+    assert_eq!(roots[0].heading.section, 3..src.len());
+    assert_eq!(roots[0].children[0].heading.section, 8..src.len());
+}
